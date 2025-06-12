@@ -23,4 +23,24 @@ model Post {
   publishedAt DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
+  tags        Tags[]   @relation("PostTags")
+}
+
+model Tags{
+  id    String   @id @default(uuid())
+  name  Tag      @unique
+  posts Post[]   @relation("PostTags")
+}
+
+enum Tag {
+  GUIDE
+  TECH
+  GAMING
+  NEWS
+  LIFESTYLE
+  EDUCATION
+  HEALTH
+  ENTERTAINMENT
+  SPORTS
+  TRAVEL
 }

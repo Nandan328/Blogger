@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
-import { createBlogInput, updateBlogInput } from "@nandan_k/medium-common";
-
+import { createBlogInput, updateBlogInput } from "../zod";
+import { Tag } from "@prisma/client";
 
 const blogRoute = new Hono<{
   Bindings: {
@@ -41,12 +41,27 @@ blogRoute.post("/", async (c) => {
   }
 
   try {
+    await Promise.all(
+      body.tags.map((tag: string) =>
+        prisma.tags.upsert({
+          where: { name: tag as Tag },
+          update: {},
+          create: { name: tag as Tag },
+        })
+      )
+    );
+
     const res = await prisma.post.create({
       data: {
         title: body.title,
         content: body.content,
         authorId: body.authorId,
         published: body.published,
+        tags: {
+          connect: body.tags.map((tag: string) => ({
+            name: tag as Tag,
+          })),
+        },
       },
     });
 
@@ -68,12 +83,22 @@ blogRoute.put("/", async (c) => {
 
   if(!success.success) {
     c.status(400);
-    return c.json({ message: "Invalid Input" });
+    return c.json({ message: "Invalid Inputs" });
   }
 
   const blogId = c.req.query();
 
   try {
+    await Promise.all(
+      body.tags.map((tag: string) =>
+        prisma.tags.upsert({
+          where: { name: tag as Tag },
+          update: {},
+          create: { name: tag as Tag },
+        })
+      )
+    );
+
     const res = await prisma.post.update({
       where: {
         id: blogId.id,
@@ -82,6 +107,11 @@ blogRoute.put("/", async (c) => {
         title: body.title,
         content: body.content,
         published: body.published,
+        tags: {
+          connect: body.tags.map((tag: string) => ({
+            name: tag as Tag,
+          })),
+        },
       },
     });
 
@@ -113,6 +143,11 @@ blogRoute.get("/bulk", async (c) => {
             },
           },
           publishedAt: true,
+          tags: {
+            select: {
+              name: true,
+            },
+          },
         }
       }
     );
@@ -144,7 +179,12 @@ blogRoute.get("/", async (c) => {
           select:{
             name: true,
           }
-        }
+        },
+        tags: {
+          select: {
+            name: true,
+          },
+        }, 
       },
     });
 

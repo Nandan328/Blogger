@@ -7,6 +7,7 @@ import { siginInputType } from "@nandan_k/medium-common";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Error from "../components/Error";
+import Loader from "../components/Loader";
 
 const Signin = () => {
   const [signinInputs, setSigninInputs] = useState<siginInputType>({
@@ -15,6 +16,9 @@ const Signin = () => {
   });
 
   const [error, setError] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
   const check = (e?: React.FormEvent) => {
@@ -24,6 +28,8 @@ const Signin = () => {
       setError(true);
       return;
     }
+
+    setLoading(true);
 
     axios
       .post(
@@ -36,14 +42,20 @@ const Signin = () => {
         localStorage.setItem("id", id);
         localStorage.setItem("token", token);
         localStorage.setItem("user", res.data.profile);
-        console.log(res);
         navigate("/");
       })
       .catch((err) => {
         console.log(err);
         setError(true);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <>

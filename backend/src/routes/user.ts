@@ -2,8 +2,9 @@ import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { sign } from "hono/jwt";
-import { siginInput, sigupInput } from "@nandan_k/medium-common";
+import { siginInput, sigupInput } from "../zod";
 import { verify } from "hono/jwt";
+import * as bcrypt from "bcryptjs";
 
 const userRoute = new Hono<{
   Bindings: {
@@ -11,6 +12,8 @@ const userRoute = new Hono<{
     JWTSECRET: string;
   };
 }>();
+
+const saltRounds = 10;
 
 userRoute.post("/signup", async (c) => {
   const prisma = new PrismaClient({
@@ -27,10 +30,14 @@ userRoute.post("/signup", async (c) => {
   }
 
   try {
+
+    const salt = await bcrypt.genSalt(saltRounds)
+    const hashpassword = await bcrypt.hash(body.password, salt);
+
     const res = await prisma.user.create({
       data: {
         email: body.email,
-        password: body.password,
+        password: hashpassword,
         name: body.name,
       },
     });
@@ -63,14 +70,20 @@ userRoute.post("/signin", async (c) => {
     const res = await prisma.user.findUnique({
       where: {
         email: body.email,
-        password: body.password,
       },
       select: {
         id: true,
         email: true,
-        name: true
+        name: true,
+        password: true
       },
     });
+
+    const match = await bcrypt.compare(body.password, res?.password || "");
+    if (!match) {
+      c.status(403);
+      return c.json({ error: "Invalid credentials" });
+    }
 
     if (!res) {
       c.status(403);
@@ -127,18 +140,23 @@ userRoute.get("/", async (c) => {
       select: {
         id: true,
         title: true,
-        author:{
+        author: {
           select: {
             name: true,
-          }
+          },
         },
         content: true,
-        published:true,
+        published: true,
         publishedAt: true,
-      }
-      })
+        tags: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
-    return c.json({user: user, blogs: blogs});
+    return c.json({ user: user, blogs: blogs });
   } catch (e) {
     c.status(403);
     return c.json({ error: "User not found" });

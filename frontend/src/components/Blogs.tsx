@@ -1,4 +1,5 @@
 import Button from "./Button";
+import Tags from "./Tags";
 
 interface Blog {
   id: string;
@@ -9,6 +10,7 @@ interface Blog {
   };
   publishedAt: string;
   published: boolean;
+  tags: { name: string }[];
 }
 
 function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => void, edit?: boolean}) {
@@ -22,7 +24,7 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
       <div className="flex items-center justify-between mb-3">
         
         <div className="flex items-center">
-          <Avatar name={blog.author.name}/> 
+          <Avatar name={blog.author.name? blog.author.name: "U"} />
           <div className="ml-3">
             <h3 className="text-sm font-semibold">{blog.author.name}</h3>
             <span className="font-mono text-xs text-gray-400">{blog.publishedAt.substring(0, 10)}</span>
@@ -44,6 +46,8 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
           </div>  
       </div>
       
+      <Tags tags={blog.tags.map(tag => tag.name)} />
+
       <h2 className="text-xl font-bold mb-2">{blog.title}</h2>
       
       <p className="text-gray-600 mb-3 dark:text-gray-300 overflow-clip">

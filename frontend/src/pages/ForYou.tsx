@@ -15,6 +15,7 @@ interface Blog {
   };
   published: boolean;
   publishedAt: string;
+  tags: { name: string }[];
 }
 
 const ForYou = () => {
@@ -48,6 +49,25 @@ const ForYou = () => {
       });
   }, [token]);
 
+  const [selectedTag, setSelectedTag] = useState("All");
+
+  const tags = [
+    "GUIDE",
+    "TECH",
+    "GAMING",
+    "NEWS",
+    "LIFESTYLE",
+    "EDUCATION",
+    "HEALTH",
+    "ENTERTAINMENT",
+    "SPORTS",
+    "TRAVEL"
+  ]
+
+  const handleTagChange = (tag: string) => () => {
+    setSelectedTag(tag);
+  }
+
   return (
     <div className="bg-white min-h-screen h-fit dark:bg-black dark:text-white">
       <NavBar />
@@ -59,18 +79,33 @@ const ForYou = () => {
             Blogs picked for you
           </p>
         </div>
-
+        <div>
+          <ul className="flex space-x-2 text-sm">
+            <li onClick={handleTagChange("All")} className="cursor-pointer hover:dark:bg-zinc-800 py-1 px-2 rounded-full">All</li>
+            <li>|</li>
+            {tags.map((tag) => (
+            <li key={tag} onClick={handleTagChange(tag)} className="cursor-pointer hover:dark:bg-zinc-800 py-1 px-2 rounded-full">
+              {tag}
+            </li>
+          ))}
+          </ul>
+        </div>
         {loading ? (
           <Loader />
         ) : (
           <div className="flex flex-col-reverse items-center">
-            {blogs.map((blog: Blog) => (
-              <Blogs
-                key={blog.id}
-                blog={blog}
-                onClick={() => clicked(blog.id)}
-              />
-            ))}
+            {blogs.map((blog: Blog) => {
+              if (selectedTag !== "All" && !blog.tags.some(tag => tag.name === selectedTag)) {
+                return null;
+              }
+              return (
+                <Blogs
+                  key={blog.id}
+                  blog={blog}
+                  onClick={() => clicked(blog.id)}
+                />
+              );
+            })}
           </div>
         )}
       </div>

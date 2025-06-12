@@ -20,6 +20,7 @@ interface Blog {
   };
   publishedAt: string;
   published: boolean;
+  tags: { name: string }[];
 }
 
 const Profile = () => {
@@ -94,24 +95,21 @@ const Profile = () => {
       ) : (
         <div className="flex mt-5 items-center justify-evenly flex-col w-full h-full">
           <div className="w-full max-w-2xl flex flex-col justify-center items-center">
-            <Avatar name={user.name} />
+            <Avatar name={user.name ? user.name[0] : "U"} />
             <h1 className="text-4xl font-bold capitalize text-center mt-5 mb-2">
-              {" "}
-              {user.name}{" "}
+              {user.name}
             </h1>
             <p className="text-gray-500 text-sm font-semibold mb-1">
               {user.email}
             </p>
             <p className="text-gray-500 text-sm font-semibold">
-              {" "}
               {blogs.length} Blogs
             </p>
           </div>
           <div>
-            {blogs.map((blog) => (
+            {blogs ? blogs.map((blog) => (
               <div key={blog.id} className="flex justify-between items-center">
                 <Blogs
-                  key={blog.id}
                   blog={blog}
                   onClick={() => {
                     handelClick(blog.id);
@@ -134,7 +132,7 @@ const Profile = () => {
                   </svg>
                 </button>
               </div>
-            ))}
+            )): (null)}
           </div>
         </div>
       )}
@@ -146,7 +144,7 @@ function Avatar({ name }: { name: string }) {
   return (
     <div className="relative select-none inline-flex items-center justify-center w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-zinc-800 ring-2 ring-white dark:ring-zinc-700">
       <span className="font-medium text-4xl text-center text-gray-600 dark:text-gray-300">
-        {name[0].toUpperCase()}
+        {name.toUpperCase()}
       </span>
     </div>
   );

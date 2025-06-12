@@ -1,42 +1,59 @@
-import Quote from '../components/Quote'
-import Heading from '../components/Heading';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import { sigunInputType } from '@nandan_k/medium-common';
-import { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import Quote from "../components/Quote";
+import Heading from "../components/Heading";
+import Input from "../components/Input";
+import Button from "../components/Button";
+import { sigunInputType } from "@nandan_k/medium-common";
+import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Loader from "../components/Loader";
 
 const Signup = () => {
-
   const [signupInputs, setSignupInputs] = useState<sigunInputType>({
-    name:"",
-    email:"",
-    password:""
-  })
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
   const check = () => {
-    if(signupInputs.name === "" || signupInputs.email === "" || signupInputs.password === ""){
-      alert("Please enter all the fields")
-      return
-    }else{
-      axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user/signup`, signupInputs)
-      .then((res) => {
-        console.log(res)
-        const token = res.data.token
-        const id = res.data.id
-        localStorage.setItem('id', id)
-        localStorage.setItem('token', token)
-        localStorage.setItem("user", res.data.profile);
-        navigate('/')
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+    if (
+      signupInputs.name === "" ||
+      signupInputs.email === "" ||
+      signupInputs.password === ""
+    ) {
+      alert("Please enter all the fields");
+      return;
+    } else {
+      setLoading(true);
+      axios
+        .post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/signup`,
+          signupInputs
+        )
+        .then((res) => {
+          const token = res.data.token;
+          const id = res.data.id;
+          localStorage.setItem("id", id);
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", res.data.profile);
+          navigate("/");
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  };
+
+  if (loading) {
+    return <Loader />;
   }
-}
 
   return (
     <>
@@ -47,7 +64,10 @@ const Signup = () => {
             message="Alreafy have an Account? "
             redirect="signin"
           />
-          <form action={check} className="flex flex-col justify-center items-center w-full max-w-sm">
+          <form
+            action={check}
+            className="flex flex-col justify-center items-center w-full max-w-sm"
+          >
             <Input
               label="Name"
               type="text"
@@ -90,6 +110,6 @@ const Signup = () => {
       </div>
     </>
   );
-}
+};
 
-export default Signup
+export default Signup;

@@ -1,18 +1,47 @@
-import Input from "./Input"
-import Button from "./Button"
+import Input from "./Input";
+import Button from "./Button";
 import Publish from "./Publish";
+import Tags from "./Tags";
 
 interface BlogInputs {
-    handleTitle: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    title?: string;
-    handleContent: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    content?: string;
-    type: string
-    publish: boolean
-    handlePublish: (e: boolean) => void
+  handleTitle: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  title?: string;
+  handleContent: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  content?: string;
+  type: string;
+  publish: boolean;
+  handlePublish: (e: boolean) => void;
+  handleTags: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  tags: string[];
+  removeTag: (tag: string) => void;
 }
 
-const BlogInputs = ({handleTitle, title, handleContent, content, type, publish, handlePublish} : BlogInputs) => {
+const BlogInputs = ({
+  handleTitle,
+  title,
+  handleContent,
+  content,
+  type,
+  publish,
+  handlePublish,
+  handleTags,
+  tags,
+  removeTag,
+}: BlogInputs) => {
+
+  const allTags = [
+    "GUIDE",
+    "TECH",
+    "GAMING",
+    "NEWS",
+    "LIFESTYLE",
+    "EDUCATION",
+    "HEALTH",
+    "ENTERTAINMENT",
+    "SPORTS",
+    "TRAVEL",
+  ];
+
   return (
     <>
       <div>
@@ -25,6 +54,32 @@ const BlogInputs = ({handleTitle, title, handleContent, content, type, publish, 
         />
       </div>
 
+      <Tags tags={tags} removeTag={removeTag} />
+
+      <div>
+        <select
+          name="tags"
+          id="tags"
+          value=""
+          onChange={handleTags}
+          className="dark:bg-black dark:text-white border rounded-full p-1"
+        >
+          <option value="" selected className="text-sm">
+            Select tags
+          </option>
+          {allTags.map((tag) => {
+            if (!tags.includes(tag)) {
+              return (
+                <option key={tag} value={tag} className="text-sm">
+                  {tag}
+                </option>
+              );
+            }
+            return null;
+          })}
+        </select>
+      </div>
+
       <div className="flex flex-col w-full">
         <label htmlFor="content" className="mb-1 font-bold">
           Content
@@ -32,7 +87,7 @@ const BlogInputs = ({handleTitle, title, handleContent, content, type, publish, 
         <textarea
           id="content"
           placeholder="Enter blog content"
-          className="border px-3 py-2 rounded-md min-h-[400px] w-full"
+          className="border px-3 py-2 rounded-md min-h-[300px] w-full"
           onChange={handleContent}
           value={content}
         />
@@ -41,11 +96,11 @@ const BlogInputs = ({handleTitle, title, handleContent, content, type, publish, 
         <div className="col-span-4">
           <Button label={type} onClick={() => {}} />
         </div>
-        
+
         <Publish publish={publish} onClick={() => handlePublish(!publish)} />
       </div>
     </>
   );
-}
+};
 
-export default BlogInputs
+export default BlogInputs;
