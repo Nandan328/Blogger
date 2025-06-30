@@ -2,7 +2,7 @@ import Input from "./Input";
 import Button from "./Button";
 import Publish from "./Publish";
 import Tags from "./Tags";
-import MDEditor from "@uiw/react-md-editor";
+// import MDEditor from "@uiw/react-md-editor";
 import React from "react";
 
 interface BlogInputs {
