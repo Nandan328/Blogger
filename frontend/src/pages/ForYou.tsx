@@ -79,7 +79,7 @@ const ForYou = () => {
             Blogs picked for you
           </p>
         </div>
-        <div>
+        <div className="sm:flex sm:justify-center overflow-x-auto scrollbar-hide">
           <ul className="flex space-x-2 text-sm">
             <li onClick={handleTagChange("All")} className="cursor-pointer hover:dark:bg-zinc-800 py-1 px-2 rounded-full">All</li>
             <li>|</li>

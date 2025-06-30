@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Loader from "../components/Loader";
 import NavBar from "../components/NavBar";
+import MarkDown from "../components/MarkDown";
 
 interface Blog {
   id: string;
@@ -57,24 +58,24 @@ const Blog = () => {
               </p>
             </div>
             <div className="flex mb-1">
-              <h1 className="text-sm">Tags:</h1>
-              <ul>
-                {blog?.tags.map((tag) => (
-                  <li key={tag.name} className="inline-block mb-2 mr-2">
-                    <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-full dark:bg-zinc-800 dark:text-gray-300">
-                      {tag.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <h1 className="text-sm flex">
+                Tags:
+                <ul>
+                  {blog?.tags.map((tag) => (
+                    <li key={tag.name} className="inline-block mb-2 mr-2">
+                      <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded-full dark:bg-zinc-800 dark:text-gray-300">
+                        {tag.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </h1>
             </div>
-            
-            <div className="mb-8 border-t">
-              {blog?.content.split("\n").map((paragraph, index) => (
-                <p key={index} className="dark:text-gray-200 mb-4">
-                  {paragraph}
-                </p>
-              ))}
+
+            <div className="mb-4 pt-4 border-t">
+              {blog?.content.split("\n").map((paragraph, index) => {
+                return <MarkDown key={index} content={paragraph} />;
+              })}
             </div>
             <div className="flex justify-end pt-4 border-t">
               <p className="italic  dark:text-gray-400">

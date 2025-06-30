@@ -74,6 +74,8 @@ const UpdateBlog = () => {
       return;
     }
 
+    setLoading(true);
+
     axios
       .put(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`,
@@ -92,7 +94,6 @@ const UpdateBlog = () => {
       )
       .then((res) => {
         if (res.status === 200) {
-          alert("Blog updated successfully");
           navigate(`/blog/${id}`);
         } else {
           alert("Something went wrong");
@@ -101,37 +102,39 @@ const UpdateBlog = () => {
       .catch((err) => {
         console.log(err);
         alert("Something went wrong");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="flex flex-col items-center min-h-screen p-4 w-full dark:bg-black dark:text-white">
       <h1 className="text-3xl font-bold text-center my-6">Update Blog</h1>
-
-      {loading ? (
-        <Loader />
-      ) : (
-        <form
-          className="w-full max-w-2xl"
-          onSubmit={(e) => {
-            e.preventDefault();
-            updateBlog();
-          }}
-        >
-          <BlogInputs
-            handleTitle={handleTitle}
-            title={title}
-            handleContent={handleContent}
-            content={content}
-            type={"Update"}
-            publish={publish}
-            handlePublish={setPublish}
-            handleTags={handletags}
-            tags={tags}
-            removeTag={removeTag}
-          />
-        </form>
-      )}
+      <form
+        className="w-full max-w-2xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          updateBlog();
+        }}
+      >
+        <BlogInputs
+          handleTitle={handleTitle}
+          title={title}
+          handleContent={handleContent}
+          content={content}
+          type={"Update"}
+          publish={publish}
+          handlePublish={setPublish}
+          handleTags={handletags}
+          tags={tags}
+          removeTag={removeTag}
+        />
+      </form>
     </div>
   );
 };

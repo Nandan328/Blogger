@@ -2,6 +2,8 @@ import Input from "./Input";
 import Button from "./Button";
 import Publish from "./Publish";
 import Tags from "./Tags";
+import MDEditor from "@uiw/react-md-editor";
+import React from "react";
 
 interface BlogInputs {
   handleTitle: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -82,8 +84,12 @@ const BlogInputs = ({
 
       <div className="flex flex-col w-full">
         <label htmlFor="content" className="mb-1 font-bold">
-          Content
+          Content <span className="text-xs font-medium">(Markdown supported)</span>
         </label>
+        {/* <MDEditor 
+          value={content}
+          onChange={(value) => handleContent(value || "")}
+        /> */}
         <textarea
           id="content"
           placeholder="Enter blog content"

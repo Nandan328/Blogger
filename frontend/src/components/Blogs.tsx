@@ -17,6 +17,10 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
   const handleClick = (id:string) => {
     window.location.href = `/update/${id}`;
   }
+  let content = blog.content.length > 80 ? blog.content.substring(0, 75) + "..." : blog.content;
+
+  content = content.replace(/[#*\-`]/g, '');
+
   return (
     <div className="w-full max-w-2xl min-w-md my-5 p-4 rounded-lg border cursor-pointer dark:border-zinc-800" 
       onClick={() => onClick(blog.id)}
@@ -51,11 +55,11 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
       <h2 className="text-xl font-bold mb-2">{blog.title}</h2>
       
       <p className="text-gray-600 mb-3 dark:text-gray-300 overflow-clip">
-        {blog.content.length > 80 ? blog.content.substring(0,75)+"...": blog.content}
+        {content}
       </p>
       
       <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-zinc-800">
-        <p className="text-xs text-gray-500 dark:text-gray-400">{Math.ceil(blog.content.length / 1000)} min read</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{Math.ceil(content.length / 1000)} min read</p>
       </div>
     </div>
   );
