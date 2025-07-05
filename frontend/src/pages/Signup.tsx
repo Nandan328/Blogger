@@ -1,33 +1,85 @@
-import Quote from "../components/Quote";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import { sigunInputType } from "@nandan_k/medium-common";
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
+import Error from "../components/Error";
+import GoogleSignin from "../components/GoogleSignin";
+import supabase from "../supabase/config";
+
+interface signupInputType {
+  name: string;
+  email: string;
+  password: string;
+}
 
 const Signup = () => {
-  const [signupInputs, setSignupInputs] = useState<sigunInputType>({
+  const [signupInputs, setSignupInputs] = useState<signupInputType>({
     name: "",
     email: "",
     password: "",
   });
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const [error, setError] = useState(false);
 
   const navigate = useNavigate();
 
-  const check = () => {
+  const handleGoogleSignin = async () => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `http://localhost:5173/auth/callback`,
+        },
+      });
+
+      console.log("Google signin data:", data.url);
+
+      if (error) {
+        console.error("Google signin error:", error);
+        setError(true);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Google signin failed:", err);
+      setError(true);
+      setLoading(false);
+    }
+  };
+
+  const check = async () => {
     if (
       signupInputs.name === "" ||
       signupInputs.email === "" ||
       signupInputs.password === ""
     ) {
-      alert("Please enter all the fields");
+      setError(true);
       return;
     } else {
+      const { error } = await supabase.auth.signUp({
+        email: signupInputs.email,
+        password: signupInputs.password,
+        options: {
+          data: {
+            displayName: signupInputs.name,
+          },
+        },
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        setError(true);
+        return;
+      }
+
       setLoading(true);
       axios
         .post(
@@ -57,7 +109,8 @@ const Signup = () => {
 
   return (
     <>
-      <div className="grid bg-white dark:bg-black sm:grid-cols-2">
+      <div className="bg-white dark:bg-black">
+        <Error message={errorMessage} error={error} setError={setError} />
         <div className="bg-white dark:bg-black text-black dark:text-white h-screen flex flex-col justify-center items-center">
           <Heading
             label="Create an account"
@@ -102,10 +155,9 @@ const Signup = () => {
               }}
             />
             <Button label="Signup" onClick={() => {}} />
+            <p>or</p>
+            <GoogleSignin handleGoogleSignin={handleGoogleSignin} />
           </form>
-        </div>
-        <div className="invisible sm:visible">
-          <Quote />
         </div>
       </div>
     </>

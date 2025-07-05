@@ -8,6 +8,7 @@ interface Blog {
   author: {
     name: string;
   };
+  authorImage?: string;
   publishedAt: string;
   published: boolean;
   tags: { name: string }[];
@@ -28,7 +29,7 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
       <div className="flex items-center justify-between mb-3">
         
         <div className="flex items-center">
-          <Avatar name={blog.author.name? blog.author.name: "U"} />
+          <Avatar name={blog.author.name? blog.author.name: "U"} image={blog.authorImage} />
           <div className="ml-3">
             <h3 className="text-sm font-semibold">{blog.author.name}</h3>
             <span className="font-mono text-xs text-gray-400">{blog.publishedAt.substring(0, 10)}</span>
@@ -65,10 +66,20 @@ function Blogs({ blog, onClick,edit }: { blog: Blog , onClick: (id: string) => v
   );
 }
 
-function Avatar({ name }: { name: string } ) {
+function Avatar({ name, image }: { name: string; image?: string }) {
   return (
     <div className="relative select-none inline-flex items-center justify-center w-8 h-8 overflow-hidden bg-gray-100 rounded-full dark:bg-zinc-800 ring-2 ring-white dark:ring-zinc-700">
-      <span className="font-medium text-sm text-center text-gray-600 dark:text-gray-300">{name[0].toUpperCase()}</span>
+      {image ? (
+        <img
+          src={image}
+          alt={name}
+          className="w-full h-full object-cover rounded-full"
+        />
+      ) : (
+        <span className="font-medium text-sm text-center text-gray-600 dark:text-gray-300">
+          {name[0].toUpperCase()}
+        </span>
+      )}
     </div>
   );
 }

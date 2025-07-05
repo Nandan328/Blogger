@@ -5,6 +5,7 @@ import Blogs from "../components/Blogs";
 import NavBar from "../components/NavBar";
 import Loader from "../components/Loader";
 import CreateButton from "../components/CreateButton";
+import supabase from "../supabase/config";
 
 interface Blog {
   id: string;
@@ -13,6 +14,7 @@ interface Blog {
   author: {
     name: string;
   };
+  authorImage?: string;
   published: boolean;
   publishedAt: string;
   tags: { name: string }[];
@@ -26,7 +28,9 @@ const ForYou = () => {
   if (!token) {
     return <Navigate to="/login" />;
   }
+  
   const [blogs, setBlogs] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const clicked = (id: string) => {
@@ -34,20 +38,30 @@ const ForYou = () => {
   };
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/bulk`, {
-        headers: {
-          Token: token,
-        },
-      })
-      .then((res) => {
+    const fetchBlogs = async () => {
+      const { data } = await supabase.auth.getSession();
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog/bulk`,
+          {
+            headers: {
+              Token: token,
+              Authorization: `Bearer ${data.session?.access_token}`
+            },
+          }
+        );
+
         setBlogs(res.data);
+      } catch (err) {
+        console.error("Error fetching blogs:", err);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      }
+    };
+
+    fetchBlogs();
   }, [token]);
+  
 
   const [selectedTag, setSelectedTag] = useState("All");
 
@@ -61,7 +75,8 @@ const ForYou = () => {
     "HEALTH",
     "ENTERTAINMENT",
     "SPORTS",
-    "TRAVEL"
+    "TRAVEL",
+    "FOOD"
   ]
 
   const handleTagChange = (tag: string) => () => {

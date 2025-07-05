@@ -26,12 +26,13 @@ userRoute.post("/signup", async (c) => {
 
   if (!success.success) {
     c.status(400);
+    console.error("Invalid input:", success.error);
     return c.json({ message: "Invalid Input" });
   }
 
   try {
-
-    const salt = await bcrypt.genSalt(saltRounds)
+    console.log("Creating user with data:", body);
+    const salt = await bcrypt.genSalt(saltRounds);
     const hashpassword = await bcrypt.hash(body.password, salt);
 
     const res = await prisma.user.create({
@@ -46,7 +47,11 @@ userRoute.post("/signup", async (c) => {
 
     const jwt = await sign({ id: res.id }, secret);
 
-    return c.json({ token: jwt, id: res.id, profile: res.name ? res.name[0] : "U" });
+    return c.json({
+      token: jwt,
+      id: res.id,
+      profile: res.name ? res.name[0] : "U",
+    });
   } catch (e) {
     return c.json({ e });
   }
@@ -75,7 +80,7 @@ userRoute.post("/signin", async (c) => {
         id: true,
         email: true,
         name: true,
-        password: true
+        password: true,
       },
     });
 
@@ -92,7 +97,11 @@ userRoute.post("/signin", async (c) => {
 
     const jwt = await sign({ id: res.id }, c.env.JWTSECRET);
 
-    return c.json({ token: jwt, id: res.id, profile: res.name ? res.name[0] : "U" });
+    return c.json({
+      token: jwt,
+      id: res.id,
+      profile: res.name ? res.name[0] : "U",
+    });
   } catch (e) {
     c.status(403);
     return c.json({ e });
@@ -126,11 +135,12 @@ userRoute.get("/", async (c) => {
     const user = await prisma.user.findUnique({
       where: {
         id: id,
-      },select: {
+      },
+      select: {
         id: true,
         email: true,
         name: true,
-      }
+      },
     });
 
     const blogs = await prisma.post.findMany({
@@ -160,6 +170,48 @@ userRoute.get("/", async (c) => {
   } catch (e) {
     c.status(403);
     return c.json({ error: "User not found" });
+  }
+});
+
+userRoute.get("/exists", async (c) => {
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  const email = c.req.query("email");
+
+  if (!email) {
+    c.status(400);
+    return c.json({ error: "Email is required" });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+    if (!user) {
+      console.log("User not found for email:", email);
+      return c.json({ exists: false });
+    }
+    const jwt = await sign({ id: user?.id }, c.env.JWTSECRET);
+    console.log("User found:", user);
+    return c.json({
+      exists: true,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      token: jwt,
+    });
+  } catch (e) {
+    c.status(500);
+    return c.json({ error: "Internal Server Error" });
   }
 });
 

@@ -23,6 +23,7 @@ model Post {
   publishedAt DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
+  authorImage String?
   tags        Tags[]   @relation("PostTags")
 }
 
@@ -43,4 +44,5 @@ enum Tag {
   ENTERTAINMENT
   SPORTS
   TRAVEL
+  FOOD
 }

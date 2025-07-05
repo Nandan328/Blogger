@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 
 interface ErrorProps {
+  message?: string;
   error: boolean;
   setError: (error: boolean) => void;
 }
 
-const Error = ({ error, setError }: ErrorProps) => {
+const Error = ({ message, error, setError }: ErrorProps) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const Error = ({ error, setError }: ErrorProps) => {
       }`}
     >
       <div className="mb-2">
-        <p className="text-white font-medium">Wrong Inputs</p>
+        <p className="text-white font-medium">{message || "Wrong Inputs"}</p>
       </div>
     </div>
   );

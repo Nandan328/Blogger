@@ -4,6 +4,7 @@ import Loader from "../components/Loader";
 import Blogs from "../components/Blogs";
 import NavBar from "../components/NavBar";
 import { useNavigate } from "react-router-dom";
+import supabase from "../supabase/config";
 
 interface User {
   name: string;
@@ -18,6 +19,7 @@ interface Blog {
   author: {
     name: string;
   };
+  authorImage?: string;
   publishedAt: string;
   published: boolean;
   tags: { name: string }[];
@@ -29,6 +31,16 @@ const Profile = () => {
   const token = localStorage.getItem("token");
 
   const navigate = useNavigate();
+
+  const [userDetails, setUserDetails] = useState<userDetails>({
+    email: "",
+    name: "",
+    image: "",
+  });
+
+  useEffect(() => {
+    
+  }, []);
 
   useEffect(() => {
     if (!token || !id) {
@@ -52,12 +64,14 @@ const Profile = () => {
     window.location.href = `/blog/${id}`;
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    const { data } = await supabase.auth.getSession();
     if (window.confirm("Are you sure you want to delete this blog?")) {
       axios
         .delete(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`, {
           headers: {
             Token: token,
+            Authorization: `Bearer ${data.session?.access_token}`,
           },
         })
         .then(() => {
@@ -71,20 +85,37 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user?id=${id}`, {
-        headers: {
-          Token: token,
-        },
-      })
-      .then((res) => {
-        setUser(res.data.user);
-        setBlogs(res.data.blogs);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
+
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      const session = await supabase.auth.getSession();
+
+      setUserDetails({
+        email: user?.email,
+        name: user?.user_metadata.displayName,
+        image: user?.user_metadata.avatar_url,
       });
+
+
+      axios
+        .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/user?id=${id}`, {
+          headers: {
+            Token: token,
+            Authorization: `Bearer ${session.data.session?.access_token}`,
+          },
+        })
+        .then((res) => {
+          setUser(res.data.user);
+          setBlogs(res.data.blogs);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+
+    fetchUser();
   }, [updated, id, token]);
 
   return (
@@ -95,7 +126,7 @@ const Profile = () => {
       ) : (
         <div className="flex mt-5 items-center justify-evenly flex-col w-full h-full">
           <div className="w-full max-w-2xl flex flex-col justify-center items-center">
-            <Avatar name={user.name ? user.name[0] : "U"} />
+            <Avatar userdetails={userDetails} />
             <h1 className="text-4xl font-bold capitalize text-center mt-5 mb-2">
               {user.name}
             </h1>
@@ -140,14 +171,30 @@ const Profile = () => {
   );
 };
 
-function Avatar({ name }: { name: string }) {
+interface userDetails {
+  email: string | undefined;
+  name: string | undefined;
+  image: string | undefined;
+}
+
+function Avatar({ userdetails }: { userdetails: userDetails }) {
+
   return (
     <div className="relative select-none inline-flex items-center justify-center w-20 h-20 overflow-hidden bg-gray-100 rounded-full dark:bg-zinc-800 ring-2 ring-white dark:ring-zinc-700">
-      <span className="font-medium text-4xl text-center text-gray-600 dark:text-gray-300">
-        {name.toUpperCase()}
-      </span>
+      {userdetails.image ? (
+        <img
+          src={userdetails.image}
+          alt="User Avatar"
+          className="w-full h-full object-cover rounded-full"
+        />
+      ) : (
+        <span className="font-medium text-4xl text-center text-gray-600 dark:text-gray-300">
+          {userdetails.name ? userdetails.name[0].toUpperCase() : "U"}
+        </span>
+      )}
     </div>
   );
 }
+
 
 export default Profile;

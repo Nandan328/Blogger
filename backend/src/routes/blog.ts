@@ -4,16 +4,40 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { verify } from "hono/jwt";
 import { createBlogInput, updateBlogInput } from "../zod";
 import { Tag } from "@prisma/client";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 
 const blogRoute = new Hono<{
   Bindings: {
     DATABASE_URL: string;
     JWTSECRET: string;
+    SUPABASE_URL: string;
+    SUPABASE_ANON_KEY: string;
+  };
+  Variables: {
+    user?: User;
   };
 }>();
 
-blogRoute.use("//*", async (c, next) => {
+blogRoute.use("/*", async (c, next) => {
+  const supabase = new SupabaseClient(
+    c.env.SUPABASE_URL,
+    c.env.SUPABASE_ANON_KEY
+  );
   const header = await c.req.header("Token");
+  const supabaseHeader = await c.req.header("Authorization");
+  if (supabaseHeader) {
+    const token = supabaseHeader.split(" ")[1];
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) {
+      c.status(403);
+      return c.json({ error: "unauthorized" });
+    }
+    console.table(data.user);
+    c.set("user", data.user);
+  } else {
+    console.error("No Authorization header found");
+  }
+
   const secret = c.env.JWTSECRET;
   if (!header) return;
   const res = await verify(header, secret);
@@ -56,6 +80,7 @@ blogRoute.post("/", async (c) => {
         title: body.title,
         content: body.content,
         authorId: body.authorId,
+        authorImage: c.get("user")?.user_metadata?.avatar_url || "",
         published: body.published,
         tags: {
           connect: body.tags.map((tag: string) => ({
@@ -142,6 +167,7 @@ blogRoute.get("/bulk", async (c) => {
               name: true,
             },
           },
+          authorImage: true,
           publishedAt: true,
           tags: {
             select: {
@@ -180,6 +206,7 @@ blogRoute.get("/", async (c) => {
             name: true,
           }
         },
+        authorImage: true,
         tags: {
           select: {
             name: true,

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import Loader from "../components/Loader";
 import NavBar from "../components/NavBar";
 import MarkDown from "../components/MarkDown";
+import supabase from "../supabase/config";
 
 interface Blog {
   id: string;
@@ -12,6 +13,7 @@ interface Blog {
   author: {
     name: string;
   };
+  authorImage?: string;
   publishedAt: string;
   tags: { name: string }[];
 }
@@ -25,21 +27,33 @@ const Blog = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`, {
-        headers: {
-          Token: token,
-        },
-      })
-      .then((res) => {
+    const fetchBlog = async () => {
+      try {
+        window.scrollTo(0, 0);
+
+        const { data } = await supabase.auth.getSession();
+        const accessToken = data.session?.access_token;
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`,
+          {
+            headers: {
+              Token: token,
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
         setBlog(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      }
+    };
+
+    fetchBlog();
   }, [id, token]);
+  
 
   return (
     <div className="min-h-screen dark:bg-black dark:text-white">

@@ -1,30 +1,82 @@
-import Quote from "../components/Quote";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import { useState } from "react";
-import { siginInputType } from "@nandan_k/medium-common";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Error from "../components/Error";
 import Loader from "../components/Loader";
+import GoogleSignin from "../components/GoogleSignin";
+import supabase from "../supabase/config";
+
+interface signinInputType {
+  email: string;
+  password: string;
+}
 
 const Signin = () => {
-  const [signinInputs, setSigninInputs] = useState<siginInputType>({
+  const [signinInputs, setSigninInputs] = useState<signinInputType>({
     email: "",
     password: "",
   });
 
   const [error, setError] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  const check = (e?: React.FormEvent) => {
+  const handleGoogleSignin = async () => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `http://localhost:5173/auth/callback`,
+        },
+      });
+
+      console.log("Google signin data:", data.url);
+
+      if (error) {
+        console.error("Google signin error:", error);
+        setError(true);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Google signin failed:", err);
+      setError(true);
+      setLoading(false);
+    }
+  };
+
+  const check = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     if (signinInputs.email === "" || signinInputs.password === "") {
+      setError(true);
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: signinInputs.email,
+      password: signinInputs.password,
+    });
+
+    if (error) {
+      console.error("Signin error:", error);
+      setErrorMessage(error.message);
+      setError(true);
+      return;
+    }
+
+    setLoading(true);
+
+    if (error) {
       setError(true);
       return;
     }
@@ -59,8 +111,8 @@ const Signin = () => {
 
   return (
     <>
-      <div className="grid bg-white dark:bg-black sm:grid-cols-2 ">
-        <Error error={error} setError={setError} />
+      <div className="bg-white dark:bg-black">
+        <Error message={errorMessage} error={error} setError={setError} />
         <div className="bg-white dark:bg-black text-black dark:text-white h-screen flex flex-col justify-center items-center">
           <Heading
             label="Login to your account"
@@ -94,10 +146,9 @@ const Signin = () => {
               }}
             />
             <Button label="Signin" onClick={check} />
+            <p>or</p>
+            <GoogleSignin handleGoogleSignin={handleGoogleSignin} />
           </form>
-        </div>
-        <div className=" hidden sm:block">
-          <Quote />
         </div>
       </div>
     </>

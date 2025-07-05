@@ -42,6 +42,7 @@ const BlogInputs = ({
     "ENTERTAINMENT",
     "SPORTS",
     "TRAVEL",
+    "FOOD"
   ];
 
   return (

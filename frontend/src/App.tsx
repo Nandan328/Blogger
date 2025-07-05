@@ -7,6 +7,7 @@ import Error from "./pages/Error"
 import CreateBlog from "./pages/CreateBlog"
 import Profile from "./pages/Profile"
 import UpdateBlog from "./pages/UpdateBlog"
+import AuthCallback from "./pages/AuthCallback"
 
 function App() {
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/profile" element={<Profile/>}/>
           <Route path="/" element={<ForYou/>}/>
           <Route path="/update/:id" element={<UpdateBlog />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<Error/>}/>
         </Routes>
       </Router>

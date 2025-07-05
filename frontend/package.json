@@ -10,9 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@nandan_k/medium-common": "^1.1.0",
+    "@supabase/supabase-js": "^2.50.2",
     "@tailwindcss/vite": "^4.0.15",
-    "@uiw/react-md-editor": "^4.0.7",
     "axios": "^1.8.4",
     "dompurify": "^3.2.6",
     "marked": "^16.0.0",

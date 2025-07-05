@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Loader from "../components/Loader";
 import BlogInputs from "../components/BlogInputs";
+import supabase from "../supabase/config";
 
 const UpdateBlog = () => {
   const { id } = useParams();
@@ -24,33 +25,46 @@ const UpdateBlog = () => {
   }, [token, userId, navigate]);
 
   useEffect(() => {
-    if (token) {
-      axios
-        .get(`${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`, {
-          headers: {
-            Token: token,
-          },
-        })
-        .then((res) => {
-          setTitle(res.data.title);
-          setContent(res.data.content);
-          setPublish(res.data.published);
-          setTags(
-            Array.isArray(res.data.tags)
-              ? res.data.tags.map((tag: any) =>
-                  typeof tag === "string" ? tag : tag.name
-                )
-              : []
-          );
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          alert("Error fetching blog details");
-          navigate("/");
-        });
-    }
+    if (!token) return;
+
+    const fetchBlogDetails = async () => {
+      const { data } = await supabase.auth.getSession();
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`,
+          {
+            headers: {
+              Token: token,
+              Authorization: `Bearer ${data.session?.access_token}`,
+            },
+          }
+        );
+
+        const Data = res.data;
+
+        setTitle(Data.title);
+        setContent(Data.content);
+        setPublish(Data.published);
+
+        setTags(
+          Array.isArray(Data.tags)
+            ? Data.tags.map((tag: any) =>
+                typeof tag === "string" ? tag : tag.name
+              )
+            : []
+        );
+      } catch (err) {
+        console.error("Error fetching blog details:", err);
+        alert("Error fetching blog details");
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogDetails();
   }, [id, token, navigate]);
+  
 
   const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import BlogInputs from "../components/BlogInputs";
 import Loader from "../components/Loader";
+import supabase from "../supabase/config";
 
 const CreateBlog = () => {
   const token = localStorage.getItem("token");
@@ -25,6 +26,7 @@ const CreateBlog = () => {
 
   const [loading, setLoading] = useState<boolean>(false);
 
+
   const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
@@ -44,11 +46,15 @@ const CreateBlog = () => {
     setTags(tags.filter((t) => t !== tag));
   };
 
-  const create = () => {
+  const create = async () => {
+
     if (!title || !content) {
       alert("Please fill all fields");
       return;
     }
+
+    const { data } = await supabase.auth.getSession();
+
     setLoading(true);
 
     axios
@@ -64,6 +70,7 @@ const CreateBlog = () => {
         {
           headers: {
             Token: token,
+            Authorization: `Bearer ${data.session?.access_token}`,
           },
         }
       )
