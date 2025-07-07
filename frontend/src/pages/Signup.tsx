@@ -36,7 +36,7 @@ const Signup = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `http://localhost:5173/auth/callback`,
+          redirectTo: `${import.meta.env.VITE_CURRENT_URL}`,
         },
       });
 
@@ -91,7 +91,6 @@ const Signup = () => {
           const id = res.data.id;
           localStorage.setItem("id", id);
           localStorage.setItem("token", token);
-          localStorage.setItem("user", res.data.profile);
           navigate("/");
         })
         .catch((err) => {
