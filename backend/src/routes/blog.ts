@@ -133,7 +133,7 @@ blogRoute.put("/", async (c) => {
         content: body.content,
         published: body.published,
         tags: {
-          connect: body.tags.map((tag: string) => ({
+          set: body.tags.map((tag: string) => ({
             name: tag as Tag,
           })),
         },
@@ -214,7 +214,6 @@ blogRoute.get("/", async (c) => {
         }, 
       },
     });
-
     return c.json(res);
   } catch (e) {
     c.status(411);

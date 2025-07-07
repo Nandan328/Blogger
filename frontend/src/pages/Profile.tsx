@@ -53,6 +53,7 @@ const Profile = () => {
     email: "",
     id: "",
   });
+  const [userImg, setUserImg] = useState<string | null>(null);
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
 
@@ -89,6 +90,7 @@ const Profile = () => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
       const user = data.user;
+      setUserImg(user?.user_metadata.avatar_url || null);
       const session = await supabase.auth.getSession();
 
       setUserDetails({
@@ -118,12 +120,13 @@ const Profile = () => {
     fetchUser();
   }, [updated, id, token]);
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className=" min-h-screen w-full dark:bg-black dark:text-white">
-      <NavBar />
-      {loading ? (
-        <Loader />
-      ) : (
+      <NavBar user={userImg} />
         <div className="flex mt-5 items-center justify-evenly flex-col w-full h-full">
           <div className="w-full max-w-2xl flex flex-col justify-center items-center">
             <Avatar userdetails={userDetails} />
@@ -166,7 +169,6 @@ const Profile = () => {
             )): (null)}
           </div>
         </div>
-      )}
     </div>
   );
 };

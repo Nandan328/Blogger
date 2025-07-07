@@ -4,16 +4,24 @@ import axios from "axios";
 import Loader from "../components/Loader";
 import BlogInputs from "../components/BlogInputs";
 import supabase from "../supabase/config";
+import NavBar from "../components/NavBar";
 
 const UpdateBlog = () => {
   const { id } = useParams();
+
   const navigate = useNavigate();
 
   const [title, setTitle] = useState<string>("");
+
   const [content, setContent] = useState<string>("");
+
   const [loading, setLoading] = useState<boolean>(true);
+
   const [publish, setPublish] = useState<boolean>(false);
+
   const [tags, setTags] = useState<string[]>([]);
+
+  const [user, setUser] = useState<string | null>(null);
 
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("id");
@@ -29,6 +37,8 @@ const UpdateBlog = () => {
 
     const fetchBlogDetails = async () => {
       const { data } = await supabase.auth.getSession();
+      const userData = await supabase.auth.getUser();
+      setUser(userData.data.user?.user_metadata.avatar_url || null);
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/v1/blog?id=${id}`,
@@ -64,7 +74,6 @@ const UpdateBlog = () => {
 
     fetchBlogDetails();
   }, [id, token, navigate]);
-  
 
   const handleTitle = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -79,7 +88,8 @@ const UpdateBlog = () => {
   };
 
   const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
+    const updatedTags = tags.filter((t) => t != tag);
+    setTags(updatedTags);
   };
 
   const updateBlog = () => {
@@ -127,28 +137,31 @@ const UpdateBlog = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-4 w-full dark:bg-black dark:text-white">
-      <h1 className="text-3xl font-bold text-center my-6">Update Blog</h1>
-      <form
-        className="w-full max-w-2xl"
-        onSubmit={(e) => {
-          e.preventDefault();
-          updateBlog();
-        }}
-      >
-        <BlogInputs
-          handleTitle={handleTitle}
-          title={title}
-          handleContent={handleContent}
-          content={content}
-          type={"Update"}
-          publish={publish}
-          handlePublish={setPublish}
-          handleTags={handletags}
-          tags={tags}
-          removeTag={removeTag}
-        />
-      </form>
+    <div className="min-h-screen bg-white dark:bg-black dark:text-white">
+      <NavBar user={user} />
+      <div className="flex flex-col items-center w-full">
+        <h1 className="text-3xl font-bold text-center my-4">Update Blog</h1>
+        <form
+          className="w-full max-w-2xl"
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateBlog();
+          }}
+        >
+          <BlogInputs
+            handleTitle={handleTitle}
+            title={title}
+            handleContent={handleContent}
+            content={content}
+            type={"Update"}
+            publish={publish}
+            handlePublish={setPublish}
+            handleTags={handletags}
+            tags={tags}
+            removeTag={removeTag}
+          />
+        </form>
+      </div>
     </div>
   );
 };

@@ -155,6 +155,7 @@ userRoute.get("/", async (c) => {
             name: true,
           },
         },
+        authorImage: true,
         content: true,
         published: true,
         publishedAt: true,
